@@ -1,5 +1,5 @@
 "use server";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/service";
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 import { getUserOrgId } from "../utils/auth";
 
 export async function createClientWithContract(args: {

@@ -18,6 +18,8 @@ type ClientWithContract = {
 export default function ClientsListPage() {
 	const [clients, setClients] = useState<ClientWithContract[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [togglingId, setTogglingId] = useState<string | null>(null);
+	const [error, setError] = useState<string | null>(null);
 	const [filterMonth, setFilterMonth] = useState<number>(new Date().getMonth() + 1);
 	const [filterYear, setFilterYear] = useState<number>(new Date().getFullYear());
 
@@ -42,14 +44,20 @@ export default function ClientsListPage() {
 
 	async function handleToggleStatus(clientId: string, contractId: string, currentStatus: string) {
 		const isActive = currentStatus === "active";
+		setError(null);
+		setTogglingId(contractId);
 		try {
 			const result = await toggleClientStatus(clientId, contractId, !isActive);
-			if (result) {
+			if (result && result.success) {
 				await fetchClients();
+			} else {
+				setError("Erro ao alterar status do contrato");
 			}
 		} catch (err: any) {
 			console.error("Erro ao alterar status:", err);
-			alert(err?.message || "Erro ao alterar status");
+			setError(err?.message || "Erro ao alterar status do contrato");
+		} finally {
+			setTogglingId(null);
 		}
 	}
 
@@ -61,6 +69,12 @@ export default function ClientsListPage() {
 					Adicionar Cliente
 				</Link>
 			</div>
+
+			{error && (
+				<div className="mb-4 p-4 rounded-xl bg-red-900/20 border border-red-800 text-red-400">
+					{error}
+				</div>
+			)}
 
 			<div className="mb-4 flex gap-4 items-center">
 				<label className="text-sm">Filtro por Mês:</label>
@@ -105,9 +119,10 @@ export default function ClientsListPage() {
 										<td className="px-4 py-2">
 											<button
 												onClick={() => handleToggleStatus(client.id, contract.id, contract.status)}
-												className={`px-3 py-1 rounded ${contract.status === "active" ? "bg-red-900/30 text-red-400 hover:bg-red-900/50" : "bg-green-900/30 text-green-400 hover:bg-green-900/50"}`}
+												disabled={togglingId === contract.id}
+												className={`px-3 py-1 rounded disabled:opacity-50 disabled:cursor-not-allowed ${contract.status === "active" ? "bg-red-900/30 text-red-400 hover:bg-red-900/50" : "bg-green-900/30 text-green-400 hover:bg-green-900/50"}`}
 											>
-												{contract.status === "active" ? "Desligar" : "Ativar"}
+												{togglingId === contract.id ? "Atualizando..." : contract.status === "active" ? "Desligar" : "Ativar"}
 											</button>
 										</td>
 									</tr>
