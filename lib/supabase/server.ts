@@ -8,30 +8,22 @@ export async function createSupabaseServerClient() {
 	if (!url || !anonKey) {
 		throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
 	}
-    return createServerClient(url, anonKey, {
-        cookies: {
-            async get(name: string) {
-                try {
-                    const cookieStore = await cookies();
-                    return cookieStore.get(name)?.value;
-                } catch {
-                    return undefined;
-                }
-            },
-            async set(name: string, value: string, options: CookieOptions) {
-                try {
-                    const cookieStore = await cookies();
-                    cookieStore.set({ name, value, ...options });
-                } catch {}
-            },
-            async remove(name: string, options: CookieOptions) {
-                try {
-                    const cookieStore = await cookies();
-                    cookieStore.set({ name, value: "", ...options });
-                } catch {}
-            },
-        },
-    });
+	return createServerClient(url, anonKey, {
+		cookies: {
+			async get(name: string) {
+				const cookieStore = await cookies();
+				return cookieStore.get(name)?.value;
+			},
+			async set(name: string, value: string, options: CookieOptions) {
+				const cookieStore = await cookies();
+				cookieStore.set({ name, value, ...options });
+			},
+			async remove(name: string, options: CookieOptions) {
+				const cookieStore = await cookies();
+				cookieStore.set({ name, value: "", ...options });
+			},
+		},
+	});
 }
 
 export function createSupabaseServiceRoleClient() {
@@ -40,8 +32,8 @@ export function createSupabaseServiceRoleClient() {
 	if (!url || !serviceKey) {
 		throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
 	}
-    // Usa o client oficial do supabase-js para evitar necessidade de cookies no contexto server-only
-    return createSupabaseJsClient(url, serviceKey);
+	// Usa o client oficial do supabase-js para evitar necessidade de cookies no contexto server-only
+	return createSupabaseJsClient(url, serviceKey);
 }
 
 export type SupabaseServer = Awaited<ReturnType<typeof createSupabaseServerClient>>;
