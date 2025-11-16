@@ -17,7 +17,12 @@ export async function listInvoices(params: ListInvoicesParams = {}) {
 	const supabase = await createSupabaseServerClient();
 	let query = supabase
 		.from("invoices")
-		.select("*", { count: "exact" })
+		.select(
+			`*,
+			clients!inner(fantasy_name, legal_name),
+			payments(amount, method, received_at)`,
+			{ count: "exact" }
+		)
 		.eq("org_id", orgId)
 		.order("issue_date", { ascending: false });
 	if (params.status?.length) query = query.in("status", params.status);
