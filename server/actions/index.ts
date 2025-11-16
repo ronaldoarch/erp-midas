@@ -180,7 +180,7 @@ export async function uploadFile(args: { contractId?: string; clientId?: string;
 	const storagePath = `${orgId}/${Date.now()}_${filename}`;
 	const { data: signed, error: signErr } = await supabase.storage
 		.from("erp-files")
-		.createSignedUploadUrl(storagePath, { contentType: args.contentType || "application/octet-stream" });
+		.createSignedUploadUrl(storagePath, { upsert: true });
 	if (signErr) throw signErr;
 	await supabase.from("files").insert({
 		org_id: orgId,
