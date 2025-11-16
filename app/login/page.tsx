@@ -1,9 +1,9 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginForm() {
 	const router = useRouter();
 	const params = useSearchParams();
 	const [email, setEmail] = useState("");
@@ -30,16 +30,54 @@ export default function LoginPage() {
 
 	return (
 		<div className="min-h-screen grid place-items-center p-6">
-			<form onSubmit={onSubmit} className="w-full max-w-sm rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm bg-white dark:bg-black">
+			<form
+				onSubmit={onSubmit}
+				className="w-full max-w-sm rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm bg-white dark:bg-black"
+			>
 				<h1 className="text-2xl font-semibold mb-4">Entrar</h1>
 				<div className="space-y-3">
-					<input type="email" required placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black py-2 px-3" />
-					<input type="password" required placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black py-2 px-3" />
+					<input
+						type="email"
+						required
+						placeholder="E-mail"
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black py-2 px-3"
+					/>
+					<input
+						type="password"
+						required
+						placeholder="Senha"
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black py-2 px-3"
+					/>
 					{error ? <p className="text-red-500 text-sm">{error}</p> : null}
 				</div>
-				<button disabled={loading} className="mt-4 w-full rounded-2xl bg-orange-500 text-white py-2 disabled:opacity-50">{loading ? "Entrando..." : "Entrar"}</button>
+				<button
+					disabled={loading}
+					className="mt-4 w-full rounded-2xl bg-orange-500 text-white py-2 disabled:opacity-50"
+				>
+					{loading ? "Entrando..." : "Entrar"}
+				</button>
 			</form>
 		</div>
 	);
 }
 
+export default function LoginPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="min-h-screen grid place-items-center p-6">
+					<div className="w-full max-w-sm rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm bg-white dark:bg-black">
+						<h1 className="text-2xl font-semibold mb-4">Entrar</h1>
+						<p className="text-sm text-zinc-500">Carregando...</p>
+					</div>
+				</div>
+			}
+		>
+			<LoginForm />
+		</Suspense>
+	);
+}
