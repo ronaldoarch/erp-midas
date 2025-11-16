@@ -2,7 +2,16 @@
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/service";
 import { getUserOrgId } from "../utils/auth";
 
-export async function createClientWithContract(args: { name: string; niche?: string; mrr: number; dueDay: number; dueYear: number; legal_name?: string }) {
+export async function createClientWithContract(args: {
+    name: string;
+    niche?: string;
+    mrr: number;
+    dueDay: number;
+    dueYear: number;
+    legal_name?: string;
+    phone?: string;
+    responsible_employee?: string;
+}) {
     let orgId: string | null = null;
     try {
         orgId = await getUserOrgId();
@@ -14,7 +23,14 @@ export async function createClientWithContract(args: { name: string; niche?: str
     const supabase = createSupabaseServiceRoleClient();
     const { data: client, error: clientErr } = await supabase
         .from("clients")
-        .insert({ legal_name: args.legal_name ?? args.name, fantasy_name: args.name, org_id: orgId, tags: args.niche ? [args.niche] : null })
+        .insert({
+            legal_name: args.legal_name ?? args.name,
+            fantasy_name: args.name,
+            org_id: orgId,
+            tags: args.niche ? [args.niche] : null,
+            phone: args.phone ?? null,
+            responsible_employee: args.responsible_employee ?? null,
+        })
         .select("id")
         .single();
     if (clientErr) throw clientErr;

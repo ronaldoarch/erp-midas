@@ -1,10 +1,12 @@
-"use client";
+ "use client";
 import { useState } from "react";
 import Link from "next/link";
 import { createClientWithContract } from "@/server/actions/clients";
 
 export default function ClientsPage() {
     const [name, setName] = useState("");
+    const [phone, setPhone] = useState("");
+    const [responsible, setResponsible] = useState("");
     const [niche, setNiche] = useState<string>("cassino");
     const [mrr, setMrr] = useState<number>(0);
     const [dueDay, setDueDay] = useState<number>(1);
@@ -23,9 +25,19 @@ export default function ClientsPage() {
         }
         setLoading(true);
         try {
-            await createClientWithContract({ name, niche, mrr, dueDay, dueYear });
+            await createClientWithContract({
+                name,
+                niche,
+                mrr,
+                dueDay,
+                dueYear,
+                phone: phone || undefined,
+                responsible_employee: responsible || undefined,
+            });
             setSuccess("Cliente e contrato criados com sucesso");
             setName("");
+            setPhone("");
+            setResponsible("");
             setMrr(0);
             setNiche("cassino");
             setDueDay(1);
@@ -45,19 +57,44 @@ export default function ClientsPage() {
                     <Link href="/clients/list" className="rounded-xl border border-zinc-800 px-4 py-2 hover:bg-zinc-900">
                         Listar Clientes
                     </Link>
-                    <Link href="/clients/import" className="rounded-xl border border-zinc-800 px-4 py-2 hover:bg-zinc-900">
-                        Importar Planilha
-                    </Link>
                 </div>
             </div>
             <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-zinc-800 p-4">
                 <div>
                     <label className="block text-sm mb-1">Nome</label>
-                    <input value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-xl border border-zinc-800 bg-black p-3" required />
+                    <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+                        required
+                    />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm mb-1">Telefone</label>
+                        <input
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="(00) 00000-0000"
+                            className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm mb-1">Funcionário responsável</label>
+                        <input
+                            value={responsible}
+                            onChange={(e) => setResponsible(e.target.value)}
+                            className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+                        />
+                    </div>
                 </div>
                 <div>
                     <label className="block text-sm mb-1">Nicho</label>
-                    <select value={niche} onChange={(e) => setNiche(e.target.value)} className="w-full rounded-xl border border-zinc-800 bg-black p-3">
+                    <select
+                        value={niche}
+                        onChange={(e) => setNiche(e.target.value)}
+                        className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+                    >
                         <option value="cassino">Cassino</option>
                         <option value="afiliado">Afiliado</option>
                         <option value="expert">Expert</option>
@@ -67,20 +104,48 @@ export default function ClientsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label className="block text-sm mb-1">Valor mensal (MRR)</label>
-                        <input type="number" step="0.01" value={mrr} onChange={(e) => setMrr(Number(e.target.value))} className="w-full rounded-xl border border-zinc-800 bg-black p-3" required />
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={mrr}
+                            onChange={(e) => setMrr(Number(e.target.value))}
+                            className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+                            required
+                        />
                     </div>
                     <div>
                         <label className="block text-sm mb-1">Dia de vencimento</label>
-                        <input type="number" min={1} max={31} value={dueDay} onChange={(e) => setDueDay(Number(e.target.value))} className="w-full rounded-xl border border-zinc-800 bg-black p-3" required />
+                        <input
+                            type="number"
+                            min={1}
+                            max={31}
+                            value={dueDay}
+                            onChange={(e) => setDueDay(Number(e.target.value))}
+                            className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+                            required
+                        />
                     </div>
                     <div>
                         <label className="block text-sm mb-1">Ano</label>
-                        <input type="number" min={2000} max={2100} value={dueYear} onChange={(e) => setDueYear(Number(e.target.value))} className="w-full rounded-xl border border-zinc-800 bg-black p-3" required />
+                        <input
+                            type="number"
+                            min={2000}
+                            max={2100}
+                            value={dueYear}
+                            onChange={(e) => setDueYear(Number(e.target.value))}
+                            className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+                            required
+                        />
                     </div>
                 </div>
                 {error ? <p className="text-red-500 text-sm">{error}</p> : null}
                 {success ? <p className="text-green-500 text-sm">{success}</p> : null}
-                <button disabled={loading} className="rounded-xl bg-orange-500 text-black px-4 py-2 disabled:opacity-50">{loading ? "Salvando..." : "Salvar"}</button>
+                <button
+                    disabled={loading}
+                    className="rounded-xl bg-orange-500 text-black px-4 py-2 disabled:opacity-50"
+                >
+                    {loading ? "Salvando..." : "Salvar"}
+                </button>
             </form>
         </div>
     );
