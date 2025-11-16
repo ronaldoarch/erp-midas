@@ -16,17 +16,23 @@ export async function getDashboardStats() {
 	const contractsRes = await supabase.from("contracts").select("mrr,status").eq("org_id", orgId).eq("status", "active");
 	
 	// Busca outras estatísticas (com tratamento de erro se as views não existirem)
-	let overdueRes = { count: 0, error: null };
-	let expiringRes = { count: 0, error: null };
+	let overdueCount = 0;
+	let expiringCount = 0;
 	
 	try {
-		const overdueQuery = await supabase.from("v_invoices_overdue").select("id", { head: true, count: "exact" }).eq("org_id", orgId);
-		if (!overdueQuery.error) overdueRes = overdueQuery;
+		const { count, error } = await supabase
+			.from("v_invoices_overdue")
+			.select("id", { head: true, count: "exact" })
+			.eq("org_id", orgId);
+		if (!error && typeof count === "number") overdueCount = count;
 	} catch {}
 	
 	try {
-		const expiringQuery = await supabase.from("v_contracts_expiring").select("id", { head: true, count: "exact" }).eq("org_id", orgId);
-		if (!expiringQuery.error) expiringRes = expiringQuery;
+		const { count, error } = await supabase
+			.from("v_contracts_expiring")
+			.select("id", { head: true, count: "exact" })
+			.eq("org_id", orgId);
+		if (!error && typeof count === "number") expiringCount = count;
 	} catch {}
 	
 	// Calcula o MRR total somando os valores dos contratos ativos
@@ -36,8 +42,8 @@ export async function getDashboardStats() {
 	return {
 		mrrTotal,
 		activeContracts: activeContractsCount,
-		overdueInvoices: overdueRes.count ?? 0,
-		expiringContracts: expiringRes.count ?? 0,
+		overdueInvoices: overdueCount,
+		expiringContracts: expiringCount,
 	};
 }
 
