@@ -11,7 +11,7 @@ export type ListContractsParams = {
 export async function listContracts(params: ListContractsParams = {}) {
 	const orgId = await getUserOrgId();
 	if (!orgId) return { data: [], count: 0 };
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	let query = supabase
 		.from("contracts")
 		.select("*", { count: "exact" })

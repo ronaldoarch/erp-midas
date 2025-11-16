@@ -14,7 +14,7 @@ export type ListInvoicesParams = {
 export async function listInvoices(params: ListInvoicesParams = {}) {
 	const orgId = await getUserOrgId();
 	if (!orgId) return { data: [], count: 0 };
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	let query = supabase
 		.from("invoices")
 		.select("*", { count: "exact" })

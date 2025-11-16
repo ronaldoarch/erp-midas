@@ -12,7 +12,7 @@ export type ListTasksParams = {
 export async function listTasks(params: ListTasksParams = {}) {
 	const orgId = await getUserOrgId();
 	if (!orgId) return { data: [], count: 0 };
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	let query = supabase
 		.from("tasks")
 		.select("*", { count: "exact" })

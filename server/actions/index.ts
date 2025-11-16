@@ -10,7 +10,7 @@ function assertOrgId(orgId: string | null): asserts orgId is string {
 export async function createClient(data: any) {
 	const orgId = await getUserOrgId();
 	assertOrgId(orgId);
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase.from("clients").insert({ ...data, org_id: orgId });
 	if (error) throw error;
 }
@@ -18,13 +18,13 @@ export async function createClient(data: any) {
 export async function updateClient(id: string, data: any) {
 	const orgId = await getUserOrgId();
 	assertOrgId(orgId);
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase.from("clients").update({ ...data, org_id: orgId }).eq("id", id);
 	if (error) throw error;
 }
 
 export async function deleteClient(id: string) {
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase.from("clients").delete().eq("id", id);
 	if (error) throw error;
 }
@@ -32,7 +32,7 @@ export async function deleteClient(id: string) {
 export async function createContact(clientId: string, data: any) {
 	const orgId = await getUserOrgId();
 	assertOrgId(orgId);
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase.from("contacts").insert({ ...data, client_id: clientId, org_id: orgId });
 	if (error) throw error;
 }
@@ -40,13 +40,13 @@ export async function createContact(clientId: string, data: any) {
 export async function updateContact(id: string, data: any) {
 	const orgId = await getUserOrgId();
 	assertOrgId(orgId);
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase.from("contacts").update({ ...data, org_id: orgId }).eq("id", id);
 	if (error) throw error;
 }
 
 export async function deleteContact(id: string) {
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase.from("contacts").delete().eq("id", id);
 	if (error) throw error;
 }
@@ -54,7 +54,7 @@ export async function deleteContact(id: string) {
 export async function createContract(data: any) {
 	const orgId = await getUserOrgId();
 	assertOrgId(orgId);
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase.from("contracts").insert({ ...data, org_id: orgId });
 	if (error) throw error;
 }
@@ -96,13 +96,13 @@ export async function createClientWithContract(args: { name: string; niche?: str
 export async function updateContract(id: string, data: any) {
 	const orgId = await getUserOrgId();
 	assertOrgId(orgId);
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase.from("contracts").update({ ...data, org_id: orgId }).eq("id", id);
 	if (error) throw error;
 }
 
 export async function cancelContract(id: string) {
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase.from("contracts").update({ status: "cancelled" }).eq("id", id);
 	if (error) throw error;
 }
@@ -153,7 +153,7 @@ export async function markInvoicePaid(invoiceId: string, amount: number, method:
 export async function createTask(data: any) {
 	const orgId = await getUserOrgId();
 	assertOrgId(orgId);
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase.from("tasks").insert({ ...data, org_id: orgId });
 	if (error) throw error;
 }
@@ -161,13 +161,13 @@ export async function createTask(data: any) {
 export async function updateTask(id: string, data: any) {
 	const orgId = await getUserOrgId();
 	assertOrgId(orgId);
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase.from("tasks").update({ ...data, org_id: orgId }).eq("id", id);
 	if (error) throw error;
 }
 
 export async function moveTask(id: string, status: string) {
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase.from("tasks").update({ status }).eq("id", id);
 	if (error) throw error;
 }

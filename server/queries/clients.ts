@@ -12,7 +12,7 @@ export type ListClientsParams = {
 export async function listClients(params: ListClientsParams = {}) {
 	const orgId = await getUserOrgId();
 	if (!orgId) return { data: [], count: 0 };
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	let query = supabase
 		.from("clients")
 		.select("*", { count: "exact" })
@@ -34,7 +34,7 @@ export async function listClients(params: ListClientsParams = {}) {
 export async function getClientByIdWithRelations(id: string) {
 	const orgId = await getUserOrgId();
 	if (!orgId) return null;
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { data, error } = await supabase
 		.from("clients")
 		.select(
