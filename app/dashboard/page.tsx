@@ -18,12 +18,12 @@ export default async function DashboardPage() {
 				</Link>
 			</div>
 			<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-				<div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 p-4 shadow-sm">
-					<div className="text-sm text-zinc-500">MRR Total</div>
-					<div className="text-2xl font-semibold mt-2">
-						<Currency value={stats.mrrTotal} />
-					</div>
+			<div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 p-4 shadow-sm">
+				<div className="text-sm text-zinc-500">Total faturado</div>
+				<div className="text-2xl font-semibold mt-2">
+					<Currency value={stats.mrrTotal} />
 				</div>
+			</div>
 				<div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 p-4 shadow-sm">
 					<div className="text-sm text-zinc-500">Contratos Ativos</div>
 					<div className="text-2xl font-semibold mt-2">{stats.activeContracts}</div>

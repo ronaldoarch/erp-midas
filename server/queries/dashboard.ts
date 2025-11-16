@@ -12,8 +12,12 @@ export async function getDashboardStats() {
 	}
 	if (!orgId) return { mrrTotal: 0, activeContracts: 0, overdueInvoices: 0, expiringContracts: 0 };
 	const supabase = createSupabaseServiceRoleClient();
-	// Busca contratos ativos para calcular MRR
-	const contractsRes = await supabase.from("contracts").select("mrr,status").eq("org_id", orgId).eq("status", "active");
+
+	// Busca contratos ativos para contar quantidade
+	const contractsRes = await supabase.from("contracts").select("id,status").eq("org_id", orgId).eq("status", "active");
+
+	// Busca pagamentos para calcular total faturado
+	const paymentsRes = await supabase.from("payments").select("amount").eq("org_id", orgId);
 	
 	// Busca outras estatísticas (com tratamento de erro se as views não existirem)
 	let overdueCount = 0;
@@ -35,8 +39,8 @@ export async function getDashboardStats() {
 		if (!error && typeof count === "number") expiringCount = count;
 	} catch {}
 	
-	// Calcula o MRR total somando os valores dos contratos ativos
-	const mrrTotal = (contractsRes.data as any[])?.reduce((acc, r) => acc + Number(r.mrr ?? 0), 0) ?? 0;
+	// Calcula o total faturado somando os pagamentos
+	const mrrTotal = (paymentsRes.data as any[])?.reduce((acc, r) => acc + Number(r.amount ?? 0), 0) ?? 0;
 	const activeContractsCount = contractsRes.data?.length ?? 0;
 	
 	return {
