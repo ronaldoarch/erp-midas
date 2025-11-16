@@ -14,7 +14,11 @@ export async function listContracts(params: ListContractsParams = {}) {
 	const supabase = await createSupabaseServerClient();
 	let query = supabase
 		.from("contracts")
-		.select("*", { count: "exact" })
+		.select(
+			`*,
+			clients!inner(fantasy_name, legal_name)`,
+			{ count: "exact" }
+		)
 		.eq("org_id", orgId)
 		.order("created_at", { ascending: false });
 	if (params.status?.length) query = query.in("status", params.status);

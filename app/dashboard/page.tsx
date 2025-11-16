@@ -17,13 +17,27 @@ export default async function DashboardPage() {
 					Faturas
 				</Link>
 			</div>
-			<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-			<div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 p-4 shadow-sm">
-				<div className="text-sm text-zinc-500">Total faturado</div>
-				<div className="text-2xl font-semibold mt-2">
-					<Currency value={stats.mrrTotal} />
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				<div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 p-4 shadow-sm">
+					<div className="text-sm text-zinc-500">Total faturado</div>
+					<div className="text-2xl font-semibold mt-2">
+						<Currency value={stats.mrrTotal} />
+					</div>
 				</div>
-			</div>
+				<div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 p-4 shadow-sm">
+					<div className="text-sm text-zinc-500">Valor total em contratos</div>
+					<div className="text-xs text-zinc-400 mb-1">Soma de todos os contratos</div>
+					<div className="text-2xl font-semibold mt-2">
+						<Currency value={stats.totalContractsValue} />
+					</div>
+				</div>
+				<div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 p-4 shadow-sm">
+					<div className="text-sm text-zinc-500">Valor total a ser recebido</div>
+					<div className="text-xs text-zinc-400 mb-1">Soma dos contratos ativos</div>
+					<div className="text-2xl font-semibold mt-2">
+						<Currency value={stats.totalToReceive} />
+					</div>
+				</div>
 				<div className="rounded-3xl border border-zinc-200 dark:border-zinc-800 p-4 shadow-sm">
 					<div className="text-sm text-zinc-500">Contratos Ativos</div>
 					<div className="text-2xl font-semibold mt-2">{stats.activeContracts}</div>
