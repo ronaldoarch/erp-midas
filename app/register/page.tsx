@@ -1,9 +1,9 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-export default function RegisterPage() {
+function RegisterForm() {
     const router = useRouter();
     const params = useSearchParams();
     const [email, setEmail] = useState("");
@@ -86,6 +86,23 @@ export default function RegisterPage() {
                 </button>
             </form>
         </div>
+    );
+}
+
+export default function RegisterPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="min-h-svh flex items-center justify-center bg-black text-white p-4">
+                    <div className="w-full max-w-sm space-y-4 bg-zinc-900 p-6 rounded-2xl shadow">
+                        <h1 className="text-2xl font-semibold">Criar conta</h1>
+                        <p className="text-sm text-zinc-500">Carregando...</p>
+                    </div>
+                </div>
+            }
+        >
+            <RegisterForm />
+        </Suspense>
     );
 }
 
