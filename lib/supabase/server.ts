@@ -13,11 +13,7 @@ export function createSupabaseServerClient() {
             get(name: string) {
                 try {
                     const cookieStore = cookies();
-                    if (typeof cookieStore.get === "function") {
-                        return cookieStore.get(name)?.value;
-                    }
-                    // Fallback: usar getAll() se get() não estiver disponível
-                    return cookieStore.getAll().find((c) => c.name === name)?.value;
+                    return cookieStore.get(name)?.value;
                 } catch {
                     return undefined;
                 }
