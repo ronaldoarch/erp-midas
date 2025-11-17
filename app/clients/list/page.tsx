@@ -60,17 +60,23 @@ export default function ClientsListPage() {
 		setError(null);
 		setTogglingId(contractId);
 		try {
+			console.log(`Tentando ${isActive ? "desativar" : "ativar"} contrato ${contractId}`);
 			const result = await toggleClientStatus(clientId, contractId, !isActive);
+			console.log("Resultado da atualização:", result);
 			if (result && result.success) {
-				// Força recarregar sem cache
-				window.location.reload();
+				// Recarrega a lista de clientes
+				await fetchClients();
+				// Pequeno delay para garantir que a atualização foi processada
+				setTimeout(() => {
+					setTogglingId(null);
+				}, 500);
 			} else {
-				setError("Erro ao alterar status do contrato");
+				setError("Erro ao alterar status do contrato - resposta inválida");
+				setTogglingId(null);
 			}
 		} catch (err: any) {
 			console.error("Erro ao alterar status:", err);
 			setError(err?.message || "Erro ao alterar status do contrato");
-		} finally {
 			setTogglingId(null);
 		}
 	}

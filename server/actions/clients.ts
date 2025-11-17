@@ -58,18 +58,46 @@ export async function toggleClientStatus(clientId: string, contractId: string, i
     let orgId: string | null = null;
     try {
         orgId = await getUserOrgId();
-    } catch {}
+    } catch (err) {
+        console.log("getUserOrgId falhou, usando DEFAULT_ORG_ID", err);
+    }
     if (!orgId) {
         orgId = process.env.NEXT_PUBLIC_DEFAULT_ORG_ID || null;
     }
-    if (!orgId) throw new Error("org_id não encontrado");
+    if (!orgId) {
+        console.error("org_id não encontrado. Verifique NEXT_PUBLIC_DEFAULT_ORG_ID");
+        throw new Error("org_id não encontrado");
+    }
     
     const supabase = createSupabaseServiceRoleClient();
+    const newStatus = isActive ? "active" : "cancelled";
+    
+    console.log(`Tentando atualizar contrato ${contractId} para status: ${newStatus}, orgId: ${orgId}`);
+    
+    // Primeiro verifica se o contrato existe
+    const { data: existing, error: checkError } = await supabase
+        .from("contracts")
+        .select("id, status, org_id")
+        .eq("id", contractId)
+        .maybeSingle();
+    
+    if (checkError) {
+        console.error("Erro ao verificar contrato:", checkError);
+        throw checkError;
+    }
+    
+    if (!existing) {
+        console.error(`Contrato ${contractId} não encontrado`);
+        throw new Error("Contrato não encontrado");
+    }
+    
+    console.log(`Contrato encontrado. Status atual: ${existing.status}, org_id: ${existing.org_id}`);
+    
+    // Atualiza o contrato
     const { data, error } = await supabase
         .from("contracts")
-        .update({ status: isActive ? "active" : "cancelled" })
+        .update({ status: newStatus })
         .eq("id", contractId)
-        .eq("org_id", orgId)
         .select();
     
     if (error) {
@@ -78,10 +106,13 @@ export async function toggleClientStatus(clientId: string, contractId: string, i
     }
     
     if (!data || data.length === 0) {
+        console.error("Contrato não foi atualizado - nenhum dado retornado");
         throw new Error("Contrato não encontrado ou não foi atualizado");
     }
     
-    return { success: true, data };
+    console.log(`Contrato atualizado com sucesso. Novo status: ${data[0].status}`);
+    
+    return { success: true, data: data[0] };
 }
 
 export async function updateClient(clientId: string, data: {
