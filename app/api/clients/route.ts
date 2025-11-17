@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
 		const supabase = createSupabaseServiceRoleClient();
 
-		// Busca clientes com contratos
+		// Busca clientes com contratos - SEM cache
 		let query = supabase
 			.from("clients")
 			.select(
@@ -34,11 +34,20 @@ export async function GET(req: NextRequest) {
 			query = query.gte("contracts.end_date", startDate).lte("contracts.end_date", endDate);
 		}
 
+		// Força buscar dados atualizados sem cache
 		const { data, error } = await query.order("fantasy_name", { ascending: true });
 
 		if (error) throw error;
 
-		return NextResponse.json(data || [], { status: 200 });
+		// Adiciona headers para evitar cache
+		return NextResponse.json(data || [], { 
+			status: 200,
+			headers: {
+				'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+				'Pragma': 'no-cache',
+				'Expires': '0',
+			}
+		});
 	} catch (error: any) {
 		return NextResponse.json({ error: error?.message || "Erro ao buscar clientes" }, { status: 500 });
 	}

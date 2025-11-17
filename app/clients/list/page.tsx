@@ -98,11 +98,9 @@ export default function ClientsListPage() {
 				
 				setTogglingId(null);
 				
-				// Recarrega a lista do servidor após um pequeno delay para sincronizar
-				setTimeout(async () => {
-					console.log('Recarregando lista de clientes do servidor...');
-					await fetchClients(true);
-				}, 800);
+				// NÃO recarrega do servidor imediatamente - deixa o estado local
+				// O usuário pode recarregar manualmente se necessário
+				// Isso evita que dados antigos do servidor sobrescrevam a atualização
 			} else {
 				setError("Erro ao alterar status do contrato - resposta inválida");
 				setTogglingId(null);
