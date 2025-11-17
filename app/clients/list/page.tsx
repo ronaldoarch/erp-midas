@@ -71,28 +71,38 @@ export default function ClientsListPage() {
 			const result = await toggleClientStatus(clientId, contractId, !isActive);
 			console.log("Resultado da atualização:", result);
 			if (result && result.success) {
+				const newStatus = isActive ? "cancelled" : "active";
+				console.log('Status atualizado com sucesso. Novo status:', newStatus);
+				console.log('Dados retornados do servidor:', result.data);
+				
 				// Atualiza o estado local imediatamente para feedback visual
-				setClients((prevClients) =>
-					prevClients.map((client) => {
+				setClients((prevClients) => {
+					const updated = prevClients.map((client) => {
 						if (client.id === clientId) {
+							const updatedContracts = client.contracts.map((contract) =>
+								contract.id === contractId
+									? { ...contract, status: newStatus }
+									: contract
+							);
+							console.log(`Contrato ${contractId} atualizado no estado local. Novo status: ${newStatus}`);
 							return {
 								...client,
-								contracts: client.contracts.map((contract) =>
-									contract.id === contractId
-										? { ...contract, status: isActive ? "cancelled" : "active" }
-										: contract
-								),
+								contracts: updatedContracts,
 							};
 						}
 						return client;
-					})
-				);
+					});
+					console.log('Estado atualizado. Total de clientes:', updated.length);
+					return updated;
+				});
 				
-				// Recarrega a lista do servidor para garantir sincronização
+				setTogglingId(null);
+				
+				// Recarrega a lista do servidor após um pequeno delay para sincronizar
 				setTimeout(async () => {
+					console.log('Recarregando lista de clientes do servidor...');
 					await fetchClients(true);
-					setTogglingId(null);
-				}, 300);
+				}, 800);
 			} else {
 				setError("Erro ao alterar status do contrato - resposta inválida");
 				setTogglingId(null);
