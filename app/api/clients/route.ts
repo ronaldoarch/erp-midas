@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/service";
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
 	try {
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
 		const supabase = createSupabaseServiceRoleClient();
 
-		// Busca clientes com contratos, opcionalmente filtrando por mês/ano de vencimento
+		// Busca clientes com contratos
 		let query = supabase
 			.from("clients")
 			.select(
@@ -20,7 +20,9 @@ export async function GET(req: NextRequest) {
 				id,
 				fantasy_name,
 				legal_name,
-				contracts!inner(id, status, mrr, end_date)
+				phone,
+				responsible_employee,
+				contracts(id, status, mrr, end_date, title)
 			`
 			)
 			.eq("org_id", orgId);

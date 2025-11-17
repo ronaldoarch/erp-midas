@@ -1,17 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { toggleClientStatus } from "@/server/actions/clients";
+import { toggleClientStatus, updateClient, updateContract } from "@/server/actions/clients";
 
 type ClientWithContract = {
 	id: string;
 	fantasy_name: string;
 	legal_name: string;
+	phone?: string;
+	responsible_employee?: string;
 	contracts: Array<{
 		id: string;
 		status: string;
 		mrr: number;
 		end_date: string;
+		title?: string;
 	}>;
 };
 
@@ -20,6 +23,16 @@ export default function ClientsListPage() {
 	const [loading, setLoading] = useState(true);
 	const [togglingId, setTogglingId] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [editingClient, setEditingClient] = useState<ClientWithContract | null>(null);
+	const [editForm, setEditForm] = useState({
+		fantasy_name: "",
+		legal_name: "",
+		phone: "",
+		responsible_employee: "",
+		mrr: 0,
+		end_date: "",
+		title: "",
+	});
 	const [filterMonth, setFilterMonth] = useState<number>(new Date().getMonth() + 1);
 	const [filterYear, setFilterYear] = useState<number>(new Date().getFullYear());
 
@@ -49,7 +62,8 @@ export default function ClientsListPage() {
 		try {
 			const result = await toggleClientStatus(clientId, contractId, !isActive);
 			if (result && result.success) {
-				await fetchClients();
+				// Força recarregar sem cache
+				window.location.reload();
 			} else {
 				setError("Erro ao alterar status do contrato");
 			}
@@ -58,6 +72,63 @@ export default function ClientsListPage() {
 			setError(err?.message || "Erro ao alterar status do contrato");
 		} finally {
 			setTogglingId(null);
+		}
+	}
+
+	function handleEditClick(client: ClientWithContract) {
+		const contract = client.contracts[0];
+		setEditingClient(client);
+		setEditForm({
+			fantasy_name: client.fantasy_name || "",
+			legal_name: client.legal_name || "",
+			phone: client.phone || "",
+			responsible_employee: client.responsible_employee || "",
+			mrr: contract?.mrr || 0,
+			end_date: contract?.end_date ? new Date(contract.end_date).toISOString().split("T")[0] : "",
+			title: contract?.title || "",
+		});
+	}
+
+	function handleCloseEdit() {
+		setEditingClient(null);
+		setEditForm({
+			fantasy_name: "",
+			legal_name: "",
+			phone: "",
+			responsible_employee: "",
+			mrr: 0,
+			end_date: "",
+			title: "",
+		});
+	}
+
+	async function handleSaveEdit() {
+		if (!editingClient) return;
+		setError(null);
+		try {
+			const contract = editingClient.contracts[0];
+			
+			// Atualiza cliente
+			await updateClient(editingClient.id, {
+				fantasy_name: editForm.fantasy_name,
+				legal_name: editForm.legal_name,
+				phone: editForm.phone || undefined,
+				responsible_employee: editForm.responsible_employee || undefined,
+			});
+
+			// Atualiza contrato
+			if (contract) {
+				await updateContract(contract.id, {
+					title: editForm.title || undefined,
+					mrr: editForm.mrr || undefined,
+					end_date: editForm.end_date ? new Date(editForm.end_date).toISOString() : undefined,
+				});
+			}
+
+			handleCloseEdit();
+			await fetchClients();
+		} catch (err: any) {
+			setError(err?.message || "Erro ao salvar alterações");
 		}
 	}
 
@@ -117,19 +188,121 @@ export default function ClientsListPage() {
 										</td>
 										<td className="px-4 py-2">{new Date(contract.end_date).toLocaleDateString("pt-BR")}</td>
 										<td className="px-4 py-2">
-											<button
-												onClick={() => handleToggleStatus(client.id, contract.id, contract.status)}
-												disabled={togglingId === contract.id}
-												className={`px-3 py-1 rounded disabled:opacity-50 disabled:cursor-not-allowed ${contract.status === "active" ? "bg-red-900/30 text-red-400 hover:bg-red-900/50" : "bg-green-900/30 text-green-400 hover:bg-green-900/50"}`}
-											>
-												{togglingId === contract.id ? "Atualizando..." : contract.status === "active" ? "Desligar" : "Ativar"}
-											</button>
+											<div className="flex gap-2">
+												<button
+													onClick={() => handleToggleStatus(client.id, contract.id, contract.status)}
+													disabled={togglingId === contract.id}
+													className={`px-3 py-1 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed ${contract.status === "active" ? "bg-red-900/30 text-red-400 hover:bg-red-900/50" : "bg-green-900/30 text-green-400 hover:bg-green-900/50"}`}
+												>
+													{togglingId === contract.id ? "Atualizando..." : contract.status === "active" ? "Desligar" : "Ativar"}
+												</button>
+												<button
+													onClick={() => handleEditClick(client)}
+													className="px-3 py-1 rounded text-sm bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
+												>
+													Editar
+												</button>
+											</div>
 										</td>
 									</tr>
 								);
 							})}
 						</tbody>
 					</table>
+				</div>
+			)}
+
+			{/* Modal de Edição */}
+			{editingClient && (
+				<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+					<div className="bg-black border border-zinc-800 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+						<h2 className="text-xl font-semibold mb-4">Editar Cliente e Contrato</h2>
+						
+						<div className="space-y-4">
+							<div>
+								<label className="block text-sm mb-1">Nome Fantasia</label>
+								<input
+									type="text"
+									value={editForm.fantasy_name}
+									onChange={(e) => setEditForm({ ...editForm, fantasy_name: e.target.value })}
+									className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+								/>
+							</div>
+							<div>
+								<label className="block text-sm mb-1">Razão Social</label>
+								<input
+									type="text"
+									value={editForm.legal_name}
+									onChange={(e) => setEditForm({ ...editForm, legal_name: e.target.value })}
+									className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+								/>
+							</div>
+							<div>
+								<label className="block text-sm mb-1">Telefone</label>
+								<input
+									type="text"
+									value={editForm.phone}
+									onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+									placeholder="(00) 00000-0000"
+									className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+								/>
+							</div>
+							<div>
+								<label className="block text-sm mb-1">Funcionário Responsável</label>
+								<input
+									type="text"
+									value={editForm.responsible_employee}
+									onChange={(e) => setEditForm({ ...editForm, responsible_employee: e.target.value })}
+									className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+								/>
+							</div>
+							<div>
+								<label className="block text-sm mb-1">Título do Contrato</label>
+								<input
+									type="text"
+									value={editForm.title}
+									onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+									className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+								/>
+							</div>
+							<div className="grid grid-cols-2 gap-4">
+								<div>
+									<label className="block text-sm mb-1">Valor Mensal (MRR)</label>
+									<input
+										type="number"
+										step="0.01"
+										value={editForm.mrr}
+										onChange={(e) => setEditForm({ ...editForm, mrr: Number(e.target.value) })}
+										className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+									/>
+								</div>
+								<div>
+									<label className="block text-sm mb-1">Data de Vencimento</label>
+									<input
+										type="date"
+										value={editForm.end_date}
+										onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })}
+										className="w-full rounded-xl border border-zinc-800 bg-black p-3"
+									/>
+								</div>
+							</div>
+						</div>
+
+						<div className="flex gap-2 mt-6">
+							<button
+								onClick={handleSaveEdit}
+								className="flex-1 rounded-xl bg-orange-500 text-black px-4 py-2 hover:bg-orange-400"
+							>
+								Salvar
+							</button>
+							<button
+								onClick={handleCloseEdit}
+								className="flex-1 rounded-xl border border-zinc-800 px-4 py-2 hover:bg-zinc-900"
+							>
+								Cancelar
+							</button>
+						</div>
+					</div>
 				</div>
 			)}
 		</div>

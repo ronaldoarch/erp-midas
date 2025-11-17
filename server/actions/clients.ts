@@ -77,5 +77,73 @@ export async function toggleClientStatus(clientId: string, contractId: string, i
         throw error;
     }
     
+    if (!data || data.length === 0) {
+        throw new Error("Contrato não encontrado ou não foi atualizado");
+    }
+    
     return { success: true, data };
+}
+
+export async function updateClient(clientId: string, data: {
+    fantasy_name?: string;
+    legal_name?: string;
+    phone?: string;
+    responsible_employee?: string;
+    tags?: string[];
+}) {
+    let orgId: string | null = null;
+    try {
+        orgId = await getUserOrgId();
+    } catch {}
+    if (!orgId) {
+        orgId = process.env.NEXT_PUBLIC_DEFAULT_ORG_ID || null;
+    }
+    if (!orgId) throw new Error("org_id não encontrado");
+    
+    const supabase = createSupabaseServiceRoleClient();
+    const { data: updated, error } = await supabase
+        .from("clients")
+        .update(data)
+        .eq("id", clientId)
+        .eq("org_id", orgId)
+        .select();
+    
+    if (error) throw error;
+    if (!updated || updated.length === 0) {
+        throw new Error("Cliente não encontrado");
+    }
+    
+    return { success: true, data: updated[0] };
+}
+
+export async function updateContract(contractId: string, data: {
+    title?: string;
+    mrr?: number;
+    end_date?: string;
+    start_date?: string;
+    billing_cycle?: string;
+}) {
+    let orgId: string | null = null;
+    try {
+        orgId = await getUserOrgId();
+    } catch {}
+    if (!orgId) {
+        orgId = process.env.NEXT_PUBLIC_DEFAULT_ORG_ID || null;
+    }
+    if (!orgId) throw new Error("org_id não encontrado");
+    
+    const supabase = createSupabaseServiceRoleClient();
+    const { data: updated, error } = await supabase
+        .from("contracts")
+        .update(data)
+        .eq("id", contractId)
+        .eq("org_id", orgId)
+        .select();
+    
+    if (error) throw error;
+    if (!updated || updated.length === 0) {
+        throw new Error("Contrato não encontrado");
+    }
+    
+    return { success: true, data: updated[0] };
 }
