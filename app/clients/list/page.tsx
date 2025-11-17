@@ -40,16 +40,23 @@ export default function ClientsListPage() {
 		fetchClients();
 	}, [filterMonth, filterYear]);
 
-	async function fetchClients() {
+	async function fetchClients(forceRefresh = false) {
 		setLoading(true);
 		try {
-			const res = await fetch(`/api/clients?month=${filterMonth}&year=${filterYear}`);
+			// Adiciona timestamp para evitar cache
+			const cacheBuster = forceRefresh ? `&_t=${Date.now()}` : '';
+			const res = await fetch(`/api/clients?month=${filterMonth}&year=${filterYear}${cacheBuster}`, {
+				cache: forceRefresh ? 'no-store' : 'default',
+			});
 			const data = await res.json();
 			if (res.ok) {
+				console.log('Clientes carregados:', data.length);
 				setClients(data);
+			} else {
+				console.error('Erro ao carregar clientes:', data);
 			}
 		} catch (err) {
-			console.error(err);
+			console.error('Erro ao buscar clientes:', err);
 		} finally {
 			setLoading(false);
 		}
@@ -64,12 +71,28 @@ export default function ClientsListPage() {
 			const result = await toggleClientStatus(clientId, contractId, !isActive);
 			console.log("Resultado da atualização:", result);
 			if (result && result.success) {
-				// Recarrega a lista de clientes
-				await fetchClients();
-				// Pequeno delay para garantir que a atualização foi processada
-				setTimeout(() => {
+				// Atualiza o estado local imediatamente para feedback visual
+				setClients((prevClients) =>
+					prevClients.map((client) => {
+						if (client.id === clientId) {
+							return {
+								...client,
+								contracts: client.contracts.map((contract) =>
+									contract.id === contractId
+										? { ...contract, status: isActive ? "cancelled" : "active" }
+										: contract
+								),
+							};
+						}
+						return client;
+					})
+				);
+				
+				// Recarrega a lista do servidor para garantir sincronização
+				setTimeout(async () => {
+					await fetchClients(true);
 					setTogglingId(null);
-				}, 500);
+				}, 300);
 			} else {
 				setError("Erro ao alterar status do contrato - resposta inválida");
 				setTogglingId(null);
