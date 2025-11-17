@@ -62,14 +62,22 @@ export default function ClientsListPage() {
 		}
 	}
 
-	async function handleToggleStatus(clientId: string, contractId: string, currentStatus: string) {
+	async function handleToggleStatus(clientId: string, contractId: string, currentStatus: string, e?: React.MouseEvent) {
+		// Previne qualquer comportamento padrão que possa recarregar a página
+		if (e) {
+			e.preventDefault();
+			e.stopPropagation();
+		}
+		
 		const isActive = currentStatus === "active";
 		setError(null);
 		setTogglingId(contractId);
+		
 		try {
 			console.log(`Tentando ${isActive ? "desativar" : "ativar"} contrato ${contractId}`);
 			const result = await toggleClientStatus(clientId, contractId, !isActive);
 			console.log("Resultado da atualização:", result);
+			
 			if (result && result.success) {
 				const newStatus = isActive ? "cancelled" : "active";
 				console.log('Status atualizado com sucesso. Novo status:', newStatus);
@@ -97,19 +105,21 @@ export default function ClientsListPage() {
 				});
 				
 				setTogglingId(null);
-				
-				// NÃO recarrega do servidor imediatamente - deixa o estado local
-				// O usuário pode recarregar manualmente se necessário
-				// Isso evita que dados antigos do servidor sobrescrevam a atualização
 			} else {
-				setError("Erro ao alterar status do contrato - resposta inválida");
+				const errorMsg = "Erro ao alterar status do contrato - resposta inválida";
+				console.error(errorMsg, result);
+				setError(errorMsg);
 				setTogglingId(null);
 			}
 		} catch (err: any) {
 			console.error("Erro ao alterar status:", err);
-			setError(err?.message || "Erro ao alterar status do contrato");
+			const errorMsg = err?.message || "Erro ao alterar status do contrato";
+			setError(errorMsg);
 			setTogglingId(null);
+			// NÃO recarrega a página, apenas mostra o erro
 		}
+		
+		return false; // Previne qualquer ação padrão
 	}
 
 	function handleEditClick(client: ClientWithContract) {
@@ -227,13 +237,19 @@ export default function ClientsListPage() {
 										<td className="px-4 py-2">
 											<div className="flex gap-2">
 												<button
-													onClick={() => handleToggleStatus(client.id, contract.id, contract.status)}
+													type="button"
+													onClick={(e) => {
+														e.preventDefault();
+														e.stopPropagation();
+														handleToggleStatus(client.id, contract.id, contract.status, e);
+													}}
 													disabled={togglingId === contract.id}
 													className={`px-3 py-1 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed ${contract.status === "active" ? "bg-red-900/30 text-red-400 hover:bg-red-900/50" : "bg-green-900/30 text-green-400 hover:bg-green-900/50"}`}
 												>
 													{togglingId === contract.id ? "Atualizando..." : contract.status === "active" ? "Desligar" : "Ativar"}
 												</button>
 												<button
+													type="button"
 													onClick={() => handleEditClick(client)}
 													className="px-3 py-1 rounded text-sm bg-blue-900/30 text-blue-400 hover:bg-blue-900/50"
 												>
